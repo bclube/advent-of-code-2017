@@ -39,3 +39,40 @@
         [as bs] (split-at (/ (count digits) 2) digits)
         sums (map (fn [a b] (if (= a b) (+ a b) 0)) as bs)]
     (reduce + sums)))
+
+(defn- parse-ints
+  [int-str]
+  (->> int-str (re-seq #"\d+") (map #(Integer/parseInt %))))
+
+(defn- calc-row-diff
+  [int-row]
+  (let [mn (apply min int-row)
+        mx (apply max int-row)]
+    (- mx mn)))
+
+(defn day-2a-solution
+  [input]
+  (->> input
+       clojure.string/split-lines
+       (transduce
+         (comp
+           (map parse-ints)
+           (map calc-row-diff))
+         +)))
+
+(defn- solve-2b-row
+  [input]
+  (loop [vss (sort > input)]
+    (if-let [[v & vs] (seq vss)]
+      (or (some #(if (zero? (rem v %)) (/ v %)) vs)
+          (recur vs)))))
+
+(defn day-2b-solution
+  [input]
+  (->> input
+       clojure.string/split-lines
+       (transduce
+         (comp
+           (map parse-ints)
+           (map solve-2b-row))
+         +)))
