@@ -28,3 +28,15 @@
   (is (= 9 (day-2b-solution "5\t9\t2\t8
                              9\t4\t7\t3
                              3\t8\t6\t5"))))
+
+(deftest valid-day-4a-passphrase?-test
+  (is (true? (valid-day-4a-passphrase? "aa bb cc dd ee")))
+  (is (false? (valid-day-4a-passphrase? "aa bb cc dd aa")))
+  (is (true? (valid-day-4a-passphrase? "aa bb cc dd aaa"))))
+
+(deftest valid-day-4b-passphrase?-test
+  (is (true? (valid-day-4b-passphrase? "abcde fghij")))
+  (is (false? (valid-day-4b-passphrase? "abcde xyz ecdab")))
+  (is (true? (valid-day-4b-passphrase? "a ab abc abd abf abj")))
+  (is (true? (valid-day-4b-passphrase? "iiii oiii ooii oooi oooo")))
+  (is (false? (valid-day-4b-passphrase? "oiii ioii iioi iiio"))))

@@ -76,3 +76,37 @@
            (map parse-ints)
            (map solve-2b-row))
          +)))
+
+(defn- valid-day-4-passphrase?
+  [passphrase xform-fn]
+  (loop [seen #{}
+         words (re-seq #"\w+" passphrase)]
+    (if-some [[w & ws] (seq words)]
+      (let [xw (xform-fn w)]
+        (and (not (seen xw))
+             (recur (conj seen xw) ws)))
+      true)))
+
+(defn valid-day-4a-passphrase?
+  [passphrase]
+  (valid-day-4-passphrase? passphrase identity))
+
+(defn valid-day-4b-passphrase?
+  [passphrase]
+  (valid-day-4-passphrase? passphrase (comp clojure.string/join sort)))
+
+(defn- day-4-solution
+  [input pred]
+  (->> input
+       clojure.string/split-lines
+       (filter pred)
+       count))
+
+(defn day-4a-solution
+  [input]
+  (day-4-solution input valid-day-4a-passphrase?))
+
+(defn day-4b-solution
+  [input]
+  (day-4-solution input valid-day-4b-passphrase?))
+
