@@ -110,3 +110,37 @@
   [input]
   (day-4-solution input valid-day-4b-passphrase?))
 
+(defn- iterate-5-steps
+  [maze xform-fn]
+  (loop [c 0
+         i 0
+         m maze]
+    (if-some [v (get m i)]
+      (recur (inc c) (+ i v) (assoc m i (xform-fn v)))
+      c)))
+
+(defn- iterate-5a-steps
+  [maze]
+  (iterate-5-steps maze inc))
+
+(defn- iterate-5b-steps
+  [maze]
+  (iterate-5-steps maze #(if (< % 3) (inc %) (dec %))))
+
+(defn- parse-day-5-input
+  [input]
+  (->> input
+       clojure.string/split-lines
+       (into [] (map #(Integer/parseInt %)))))
+
+(defn day-5a-solution
+  [input]
+  (->> input
+       parse-day-5-input
+       iterate-5a-steps))
+
+(defn day-5b-solution
+  [input]
+  (->> input
+       parse-day-5-input
+       iterate-5b-steps))

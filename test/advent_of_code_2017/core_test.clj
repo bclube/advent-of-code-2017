@@ -40,3 +40,9 @@
   (is (true? (valid-day-4b-passphrase? "a ab abc abd abf abj")))
   (is (true? (valid-day-4b-passphrase? "iiii oiii ooii oooi oooo")))
   (is (false? (valid-day-4b-passphrase? "oiii ioii iioi iiio"))))
+
+(deftest day-5a-solution-test
+  (is (= 5 (day-5a-solution "0\n3\n0\n1\n-3\n"))))
+
+(deftest day-5b-solution-test
+  (is (= 10 (day-5b-solution "0\n3\n0\n1\n-3\n"))))
