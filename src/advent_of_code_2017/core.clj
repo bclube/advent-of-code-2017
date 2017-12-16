@@ -77,6 +77,36 @@
            (map solve-2b-row))
          +)))
 
+(defn- compute-cell-value
+  [val-map [x y]]
+  (transduce
+    (map (fn [[xx yy]] (get val-map [(+ x xx) (+ y yy)] 0)))
+    +
+    [[-1 -1] [-1 0] [-1 1] [0 -1] [0 1] [1 -1] [1 0] [1 1]]))
+
+(defn- update-bounds
+  [bounds [x y]]
+  (-> bounds
+      (update :max-x max x)
+      (update :min-x min x)
+      (update :max-y max y)
+      (update :min-y min y)))
+
+(defn day-3b-solution
+  [v]
+  (loop [[x y] [0 0]
+         value-map {[0 0] 1}
+         bounds {:max-x 0 :max-y 0 :min-x 0 :min-y 0}
+         [[dx dy] & dirs :as all-dirs] (cycle [[1 0] [0 1] [-1 0] [0 -1]])]
+    (let [new-loc [(+ x dx) (+ y dy)]
+          new-val (compute-cell-value value-map new-loc)
+          new-value-map (assoc value-map new-loc new-val)
+          new-bounds (update-bounds bounds new-loc)
+          new-dirs (if (= bounds new-bounds) all-dirs dirs)]
+      (if (> new-val v)
+        new-val
+        (recur new-loc new-value-map new-bounds new-dirs)))))
+
 (defn- valid-day-4-passphrase?
   [passphrase xform-fn]
   (loop [seen #{}

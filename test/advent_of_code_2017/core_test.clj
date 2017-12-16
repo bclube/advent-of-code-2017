@@ -29,6 +29,15 @@
                              9\t4\t7\t3
                              3\t8\t6\t5"))))
 
+(deftest day-3b-solution-test
+  (is (= 1 (day-3b-solution 0)))
+  (is (= 2 (day-3b-solution 1)))
+  (is (= 4 (day-3b-solution 2)))
+  (is (= 5 (day-3b-solution 4)))
+  (is (= 10 (day-3b-solution 5)))
+  (is (= 11 (day-3b-solution 10)))
+  (is (= 806 (day-3b-solution 750))))
+
 (deftest valid-day-4a-passphrase?-test
   (is (true? (valid-day-4a-passphrase? "aa bb cc dd ee")))
   (is (false? (valid-day-4a-passphrase? "aa bb cc dd aa")))
