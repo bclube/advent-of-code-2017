@@ -144,3 +144,53 @@
   (->> input
        parse-day-5-input
        iterate-5b-steps))
+
+(defn- index-of-max
+  [vs]
+  (if-not (seq vs)
+    -1
+    (let [mx (apply max vs)] ; TODO: room to improve efficiency, here (still O(n), though ;).
+      (->> vs
+           (map-indexed vector)
+           (drop-while #(->> % second (not= mx)))
+           ffirst))))
+
+(defn- redistribute
+  [blocks]
+  (let [i-max (index-of-max blocks)
+        v (get blocks i-max)
+        q (quot v (count blocks))]
+    (loop [i (inc i-max)
+           rc (rem v (count blocks))
+           bs (assoc blocks i-max q)]
+      (let [ii (mod i (count blocks))]
+        (if (= ii i-max)
+          bs
+          (let [amount (if (pos? rc) (inc q) q)]
+            (recur (inc i) (dec rc) (update bs ii (partial + amount)))))))))
+
+(defn- day-6-solution-impl
+  [vs]
+  (loop [c 1
+         seen {}
+         blocks vs]
+    (let [rblocks (redistribute blocks)]
+      (if (seen rblocks)
+        [c (get seen rblocks)]
+        (recur (inc c) (assoc seen rblocks c) rblocks)))))
+
+(defn- day-6-solution
+  [input f]
+  (->> input
+       parse-ints
+       (into [])
+       day-6-solution-impl
+       f))
+
+(defn day-6a-solution
+  [input]
+  (day-6-solution input (fn [[c _]] c)))
+
+(defn day-6b-solution
+  [input]
+  (day-6-solution input (fn [[c1 c2]] (- c1 c2))))

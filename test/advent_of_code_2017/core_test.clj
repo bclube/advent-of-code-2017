@@ -46,3 +46,9 @@
 
 (deftest day-5b-solution-test
   (is (= 10 (day-5b-solution "0\n3\n0\n1\n-3\n"))))
+
+(deftest day-6a-solution-impl-test
+  (is (= 5 (day-6a-solution "0 2 7 0"))))
+
+(deftest day-6b-solution-impl-test
+  (is (= 4 (day-6b-solution "0 2 7 0"))))
