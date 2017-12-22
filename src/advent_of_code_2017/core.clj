@@ -224,3 +224,38 @@
 (defn day-6b-solution
   [input]
   (day-6-solution input (fn [[c1 c2]] (- c1 c2))))
+
+(defn- parse-program-info
+  [prog-spec]
+  {:prog (->> prog-spec (re-find #"^\s*(\w+)") second)
+   :weight (->> prog-spec (re-find #"^.*\((\d+)\)") second Integer/parseInt)
+   :children (->> prog-spec (re-find #"^.*\)(.*)$") second (re-seq #"\w+") (into #{}))})
+
+(defn day-7a-solution
+  [input]
+  (let [progs (->> input clojure.string/split-lines (map parse-program-info))
+        all-children (->> progs (map :children) (apply clojure.set/union))]
+    (some #(let [p (:prog %)] (if-not (all-children p) p)) progs)))
+
+(defn- solve-7b
+  [prog-lookup {:keys [weight children] :as prog}]
+  (let [child-weights (map (comp #(solve-7b prog-lookup %) prog-lookup) children)]
+    (if-let [result (some :result child-weights)]
+      (assoc prog :result result) ; Leave as soon as result is found, possibly short-circuiting child-weights realization.
+      (assoc prog
+             :total-weight (transduce (map :total-weight) + weight child-weights)
+             :result (let [[maj-w minority-w] (->> child-weights (map :total-weight) frequencies (sort-by second >) (map first))]
+                       (if minority-w
+                         (->> child-weights
+                              (some #(if (-> % :total-weight (= minority-w)) (:weight %)))
+                              (+ (- maj-w minority-w)))))))))
+
+(defn day-7b-solution
+  [input]
+  (let [progs (->> input clojure.string/split-lines (map parse-program-info))
+        lookup (into {} (map (juxt :prog identity)) progs)
+        all-children (->> progs (map :children) (apply clojure.set/union))
+        root (some #(if-not (-> % :prog all-children) %) progs)
+        {:keys [result]} (solve-7b lookup root)]
+    result))
+
