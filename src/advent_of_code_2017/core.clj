@@ -259,3 +259,41 @@
         {:keys [result]} (solve-7b lookup root)]
     result))
 
+(defn- compile-instr
+  [line]
+  (let [[target cmd amount _if cmp-l cmp-op cmp-r :as all] (re-seq #"\S+" line)
+        amount (Integer/parseInt amount)
+        cmd ({"inc" + "dec" -} cmd)
+        cmp-op ({"<" < ">" > ">=" >= "==" = "<=" <= "!=" not=} cmp-op)
+        cmp-r (Integer/parseInt cmp-r)]
+    (fn [{:keys [current] :as registers}]
+      (let [l (get current cmp-l 0)]
+        (if (cmp-op l cmp-r)
+          (let [old (get current target 0)
+                nw (cmd old amount)]
+            (-> registers
+                (update :max-reg #(if % (max % nw) nw))
+                (assoc-in [:current target] nw)))
+          registers)))))
+
+(defn day-8a-solution
+  [input]
+  (->> input
+       clojure.string/split-lines
+       (map compile-instr)
+       (reduce
+         (fn [regs instr] (instr regs))
+         {:current {}})
+       :current
+       vals
+       (apply max)))
+
+(defn day-8b-solution
+  [input]
+  (->> input
+       clojure.string/split-lines
+       (map compile-instr)
+       (reduce
+         (fn [regs instr] (instr regs))
+         {:current {}})
+       :max-reg))
