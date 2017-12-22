@@ -297,3 +297,31 @@
          (fn [regs instr] (instr regs))
          {:current {}})
        :max-reg))
+
+(defn day-9a-solution
+  [input]
+  (loop [score 0
+         level 0
+         css (-> input
+                 clojure.string/trim
+                 (clojure.string/replace #"!." "")
+                 (clojure.string/replace #"\<.*?\>" "")
+                 (clojure.string/replace #"," ""))]
+    (if-let [[c & cs] (seq css)]
+      (case c
+        \{ (recur score (inc level) cs)
+        \} (recur (+ score level) (dec level) cs))
+      score)))
+
+(defn day-9b-solution
+  [input]
+  (-> input
+      clojure.string/trim
+      (clojure.string/replace #"!." "")
+      (->>
+        (re-seq #"\<.*?\>")
+        (transduce
+          (comp
+            (map count)
+            (map #(- % 2)))
+          +))))

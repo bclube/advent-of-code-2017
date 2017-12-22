@@ -103,3 +103,23 @@
                               a inc 1 if b < 5
                               c dec -10 if a >= 1
                               c inc -20 if c == 10"))))
+
+(deftest day-9a-solution-test
+  (is (= 1 (day-9a-solution "{}")))
+  (is (= 6 (day-9a-solution "{{{}}}")))
+  (is (= 5 (day-9a-solution "{{},{}}")))
+  (is (= 16 (day-9a-solution "{{{},{},{{}}}}")))
+  (is (= 1 (day-9a-solution "{<a>,<a>,<a>,<a>}")))
+  (is (= 9 (day-9a-solution "{{<ab>},{<ab>},{<ab>},{<ab>}}")))
+  (is (= 9 (day-9a-solution "{{<!!>},{<!!>},{<!!>},{<!!>}}")))
+  (is (= 3 (day-9a-solution "{{<a!>},{<a!>},{<a!>},{<ab>}}"))))
+
+(deftest day-9b-solution-test
+  (is (= 0 (day-9b-solution "<>")))
+  (is (= 17 (day-9b-solution "<random characters>")))
+  (is (= 3 (day-9b-solution "<<<<>")))
+  (is (= 2 (day-9b-solution "<{!>}>")))
+  (is (= 0 (day-9b-solution "<!!>")))
+  (is (= 0 (day-9b-solution "<!!!>>")))
+  (is (= 10 (day-9b-solution "<{o\"i!a,<{i<a>"))))
+
