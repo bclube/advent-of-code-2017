@@ -131,3 +131,15 @@
   (is (= "33efeb34ea91902bb2f59c9920caa6cd" (day-10b-solution "AoC 2017")))
   (is (= "3efbe78a8d82f29979031a4aa0b16a9d" (day-10b-solution "1,2,3")))
   (is (= "63960835bcdc130f0b66d7ff4f6a5a8e" (day-10b-solution "1,2,4"))))
+
+(deftest day-11a-solution-test
+  (is (= 3 (day-11a-solution "ne,ne,ne")))
+  (is (= 0 (day-11a-solution "ne,ne,sw,sw")))
+  (is (= 2 (day-11a-solution "ne,ne,s,s")))
+  (is (= 3 (day-11a-solution "se,sw,se,sw,sw"))))
+
+(deftest day-11b-solution-test
+  (is (= 3 (day-11b-solution "ne,ne,ne")))
+  (is (= 2 (day-11b-solution "ne,ne,sw,sw")))
+  (is (= 2 (day-11b-solution "ne,ne,s,s")))
+  (is (= 3 (day-11b-solution "se,sw,se,sw,sw"))))

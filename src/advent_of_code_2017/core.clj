@@ -372,3 +372,63 @@
         (map #(format "%02x" %))
         (apply str))))
 
+(defn- cancel-dirs
+  [dirs d d']
+  (let [mn (min (get dirs d 0)
+                (get dirs d' 0))]
+    (if (zero? mn)
+      dirs
+      (-> dirs
+          (update d - mn)
+          (update d' - mn)))))
+
+(defn- collapse-adjacent-dirs
+  [dirs dr dm dl]
+  (let [mn (min (get dirs dr 0)
+                (get dirs dl 0))]
+    (if (zero? mn)
+      dirs
+      (-> dirs
+          (update dr - mn)
+          (update dl - mn)
+          (update dm (fnil + 0) mn)))))
+
+(let [dirs ["n" "ne" "se" "s" "sw" "nw"]
+      oppo-dirs (->> dirs (split-at (/ (count dirs) 2)) (apply map vector))
+      adj-dirs (->> dirs cycle (partition 3 1) (take (count dirs)))]
+  (defn- cancel-opposites
+    [ds]
+    (reduce (partial apply cancel-dirs) ds oppo-dirs))
+  (defn- collapse-adjacent
+    [ds]
+    (reduce (partial apply collapse-adjacent-dirs) ds adj-dirs)))
+
+(defn- find-shortest-path
+  [ds]
+  (loop [ds ds]
+    (let [ds' (-> ds cancel-opposites collapse-adjacent)]
+      (if (not= ds ds')
+        (recur ds')
+        ds))))
+
+(defn day-11a-solution
+  [input]
+  (->> input
+       (re-seq #"\w+")
+       frequencies
+       find-shortest-path
+       (transduce (map second) +)))
+
+(defn- add-dir
+  [dirs d]
+  (-> dirs
+      (update d (fnil inc 0))
+      find-shortest-path))
+
+(defn day-11b-solution
+  [input]
+  (->> input
+       (re-seq #"\w+")
+       (reductions add-dir {})
+       (map #(transduce (map second) + %))
+       (reduce max)))
