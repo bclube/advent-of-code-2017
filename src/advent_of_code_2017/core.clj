@@ -325,3 +325,50 @@
             (map count)
             (map #(- % 2)))
           +))))
+
+(defn day-10a-solution-impl
+  [n moves]
+  (loop [moves moves
+         inc-size 0
+         vs (range n)
+         idx 0]
+    (if-some [[m & ms] (seq moves)]
+      (let [i (+ m inc-size)
+            [h t] (split-at m vs)
+            new-vs (concat (reverse h) t)]
+        (recur
+          ms
+          (mod (inc inc-size) n)
+          (->> new-vs cycle (drop i) (take n) (into []))
+          (mod (+ i idx) n)))
+      (->> vs
+           cycle
+           (drop (- n idx))
+           (take n)))))
+
+(defn day-10a-solution
+  [input]
+  (->> input
+       clojure.string/trim
+       (re-seq #"\d+")
+       (map #(Integer/parseInt %))
+       (day-10a-solution-impl 256)
+       (take 2)
+       (reduce *)))
+
+(defn day-10b-solution
+  [input]
+  (-> input
+      (->>
+        clojure.string/trim
+        (map int))
+      (concat [17 31 73 47 23])
+      (->>
+        (repeat 64)
+        (apply concat)
+        (day-10a-solution-impl 256)
+        (partition-all 16)
+        (map #(apply bit-xor %))
+        (map #(format "%02x" %))
+        (apply str))))
+
