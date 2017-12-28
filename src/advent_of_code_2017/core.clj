@@ -499,7 +499,7 @@
 
 (defn day-13b-solution
   [input]
-  (let [lines (->> input clojure.string/split-lines (map parse-day-13-layer))]
+  (let [lines (->> input clojure.string/split-lines (map parse-day-13-layer) (sort-by :rng))]
     ; Maybe there's a non-brute-force way to solve this?
     (loop [d 0]
       (if (some (partial caught? d) lines)
