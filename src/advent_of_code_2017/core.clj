@@ -471,3 +471,37 @@
       (let [ch (reachable-from i mp)]
         (recur (apply dissoc mp ch) (inc c)))
       c)))
+
+(defn- parse-day-13-layer
+  [line]
+  (let [[layer rng] (->> line
+                         (re-seq #"\d+")
+                         (map #(Integer/parseInt %)))]
+    {:layer layer
+     :rng rng}))
+
+(defn- caught?
+  [d {:keys [layer rng]}]
+  (zero?
+    (mod (+ layer d)
+         (- (* rng 2) 2))))
+
+(defn day-13a-solution
+  [input]
+  (->> input
+       clojure.string/split-lines
+       (transduce
+         (comp
+           (map parse-day-13-layer)
+           (filter (partial caught? 0))
+           (map #(* (:layer %) (:rng %))))
+         +)))
+
+(defn day-13b-solution
+  [input]
+  (let [lines (->> input clojure.string/split-lines (map parse-day-13-layer))]
+    ; Maybe there's a non-brute-force way to solve this?
+    (loop [d 0]
+      (if (some (partial caught? d) lines)
+        (recur (inc d))
+        d))))

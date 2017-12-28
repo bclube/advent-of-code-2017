@@ -161,3 +161,15 @@
                               4 <-> 2, 3, 6
                               5 <-> 6
                               6 <-> 4, 5"))))
+
+(deftest day-13a-solution-test
+  (is (= 24 (day-13a-solution "0: 3
+                               1: 2
+                               4: 4
+                               6: 4"))))
+
+(deftest day-13b-solution-test
+  (is (= 10 (day-13b-solution "0: 3
+                               1: 2
+                               4: 4
+                               6: 4"))))
