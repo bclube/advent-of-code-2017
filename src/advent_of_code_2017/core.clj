@@ -478,13 +478,12 @@
                          (re-seq #"\d+")
                          (map #(Integer/parseInt %)))]
     {:layer layer
-     :rng rng}))
+     :rng rng
+     :cycle-len (- (* rng 2) 2)}))
 
 (defn- caught?
-  [d {:keys [layer rng]}]
-  (zero?
-    (mod (+ layer d)
-         (- (* rng 2) 2))))
+  [d {:keys [cycle-len layer]}]
+  (-> layer (+ d) (mod cycle-len) zero?))
 
 (defn day-13a-solution
   [input]
