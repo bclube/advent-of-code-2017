@@ -432,3 +432,42 @@
        (reductions add-dir {})
        (map #(transduce (map second) + %))
        (reduce max)))
+
+(defn- parse-day-12-graph-node
+  [line]
+  (let [[from to :as all] (clojure.string/split line #" \<\-\> ")]
+    {:from (->> from clojure.string/trim Integer/parseInt)
+     :to (->> to (re-seq #"\d+") (into #{} (map #(Integer/parseInt %))))}))
+
+(defn- reachable-from
+  [i mp]
+  (transduce
+    (map #(reachable-from % (dissoc mp i)))
+    clojure.set/union
+    #{i}
+    (get mp i [])))
+
+(defn- parse-day-12-graph
+  [input]
+  (->> input
+       clojure.string/split-lines
+       (into {}
+             (comp
+               (map parse-day-12-graph-node)
+               (map (juxt :from :to))))))
+
+(defn day-12a-solution
+  [input]
+  (->> input
+       parse-day-12-graph
+       (reachable-from 0)
+       count))
+
+(defn day-12b-solution
+  [input]
+  (loop [mp (parse-day-12-graph input)
+         c 0]
+    (if-let [[i _] (first mp)]
+      (let [ch (reachable-from i mp)]
+        (recur (apply dissoc mp ch) (inc c)))
+      c)))

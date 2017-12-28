@@ -143,3 +143,21 @@
   (is (= 2 (day-11b-solution "ne,ne,sw,sw")))
   (is (= 2 (day-11b-solution "ne,ne,s,s")))
   (is (= 3 (day-11b-solution "se,sw,se,sw,sw"))))
+
+(deftest day-12a-solution-test
+  (is (= 6 (day-12a-solution "0 <-> 2
+                              1 <-> 1
+                              2 <-> 0, 3, 4
+                              3 <-> 2, 4
+                              4 <-> 2, 3, 6
+                              5 <-> 6
+                              6 <-> 4, 5"))))
+
+(deftest day-12b-solution-test
+  (is (= 2 (day-12b-solution "0 <-> 2
+                              1 <-> 1
+                              2 <-> 0, 3, 4
+                              3 <-> 2, 4
+                              4 <-> 2, 3, 6
+                              5 <-> 6
+                              6 <-> 4, 5"))))
