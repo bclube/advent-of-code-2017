@@ -356,21 +356,24 @@
        (take 2)
        (reduce *)))
 
+(defn- hash-str
+  [in-str]
+  (->> (concat (map int in-str) [17 31 73 47 23])
+       (repeat 64)
+       (apply concat)
+       (day-10a-solution-impl 256)
+       (into []
+             (comp
+               (partition-all 16)
+               (map (partial apply bit-xor))))))
+
 (defn day-10b-solution
   [input]
-  (-> input
-      (->>
-        clojure.string/trim
-        (map int))
-      (concat [17 31 73 47 23])
-      (->>
-        (repeat 64)
-        (apply concat)
-        (day-10a-solution-impl 256)
-        (partition-all 16)
-        (map #(apply bit-xor %))
-        (map #(format "%02x" %))
-        (apply str))))
+  (->> input
+       clojure.string/trim
+       hash-str
+       (map #(format "%02x" %))
+       (apply str)))
 
 (defn- cancel-dirs
   [dirs d d']
