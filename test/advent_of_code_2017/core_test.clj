@@ -124,7 +124,7 @@
   (is (= 10 (day-9b-solution "<{o\"i!a,<{i<a>"))))
 
 (deftest day-10a-solution-impl-test
-  (is (= '(3 4 2 1 0) (day-10a-solution-impl 5 [3 4 1 5]))))
+  (is (= '(3 4 2 1 0) (calculate-hash 5 [3 4 1 5]))))
 
 (deftest day-10b-solution-test
   (is (= "a2582a3a0e66e6e86e3812dcb672a272" (day-10b-solution "")))

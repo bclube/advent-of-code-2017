@@ -340,7 +340,7 @@
         (mod (dec to) (count v)))
       (persistent! vv))))
 
-(defn day-10a-solution-impl
+(defn calculate-hash
   [n moves]
   (loop [moves moves
          inc-size 0
@@ -360,7 +360,7 @@
        clojure.string/trim
        (re-seq #"\d+")
        (map #(Integer/parseInt %))
-       (day-10a-solution-impl 256)
+       (calculate-hash 256)
        (take 2)
        (reduce *)))
 
@@ -369,7 +369,7 @@
   (->> (concat (map int in-str) [17 31 73 47 23])
        (repeat 64)
        (apply concat)
-       (day-10a-solution-impl 256)
+       (calculate-hash 256)
        (into []
              (comp
                (partition-all 16)
