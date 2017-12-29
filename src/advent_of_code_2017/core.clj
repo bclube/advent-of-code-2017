@@ -329,7 +329,7 @@
 (defn- reverse-subvec
   [v start n]
   (loop [nn (quot n 2)
-         vv (transient v)
+         vv v
          from start
          to (-> n (+ start) dec (mod (count v)))]
     (if (pos? nn)
@@ -338,13 +338,13 @@
         (assoc! vv from (get v to) to (get v from))
         (mod (inc from) (count v))
         (mod (dec to) (count v)))
-      (persistent! vv))))
+      vv)))
 
 (defn calculate-hash
   [n moves]
   (loop [moves moves
          inc-size 0
-         vs (into [] (range n))
+         vs (transient (into [] (range n)))
          idx 0]
     (if-some [[m & ms] (seq moves)]
       (recur
@@ -352,7 +352,7 @@
         (mod (inc inc-size) n)
         (reverse-subvec vs idx m)
         (mod (+ m inc-size idx) n))
-      vs)))
+      (persistent! vs))))
 
 (defn day-10a-solution
   [input]
