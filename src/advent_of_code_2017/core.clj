@@ -507,3 +507,73 @@
       (if (some (partial caught? d) lines)
         (recur (inc d))
         d))))
+
+(defn- test-bit
+  [byt mask]
+  (-> byt (bit-and mask) zero? not))
+
+(defn- bits
+  [byt]
+  (cond-> []
+    (test-bit byt 1) (conj 0)
+    (test-bit byt 2) (conj 1)
+    (test-bit byt 4) (conj 2)
+    (test-bit byt 8) (conj 3)
+    (test-bit byt 16) (conj 4)
+    (test-bit byt 32) (conj 5)
+    (test-bit byt 64) (conj 6)
+    (test-bit byt 128) (conj 7)))
+
+(defn day-14a-solution
+  [input]
+  (transduce
+    (comp
+      (map (partial format "%s-%d" input))
+      (map hash-str)
+      cat
+      (map #(Integer/bitCount %)))
+    +
+    (range 128)))
+
+(defn- calc-bit-columns
+  [byts]
+  (into []
+        (comp
+          (map bits)
+          (map-indexed (fn [i bs] (map #(+ (* 8 i) %) bs)))
+          cat)
+        byts))
+
+(defn- adjacent-coords
+  [[a b]]
+  #{[(inc a) b]
+    [(dec a) b]
+    [a (inc b)]
+    [a (dec b)]})
+
+(defn- remove-a-region
+  [coords]
+  (loop [coords coords
+         co-q #{(first coords)}]
+    (let [hits (clojure.set/intersection coords co-q)]
+      (if (seq hits)
+        (recur
+          (clojure.set/difference coords co-q)
+          (transduce (map adjacent-coords) clojure.set/union hits))
+        coords))))
+
+(defn day-14b-solution
+  [input]
+  (loop [c 0
+         coords (into #{}
+                      (comp
+                        (map (partial format "%s-%d" input))
+                        (map hash-str)
+                        (map calc-bit-columns)
+                        (map-indexed (fn [i cs] (map (partial vector i) cs)))
+                        cat)
+                      (range 128))]
+    (if-not (empty? coords)
+      (recur (inc c) (remove-a-region coords))
+      c)))
+

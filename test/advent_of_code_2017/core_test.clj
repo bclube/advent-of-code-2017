@@ -173,3 +173,9 @@
                                1: 2
                                4: 4
                                6: 4"))))
+
+(deftest day-14a-solution-test
+  (is (= 8108 (day-14a-solution "flqrgnkx"))))
+
+(deftest day-14b-solution-test
+  (is (= 1231 (day-14b-solution "flqrgnkx"))))
