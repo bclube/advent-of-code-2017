@@ -370,10 +370,10 @@
        (repeat 64)
        (apply concat)
        (calculate-hash 256)
-       (into []
-             (comp
-               (partition-all 16)
-               (map (partial apply bit-xor))))))
+       (eduction
+         (comp
+           (partition-all 16)
+           (map (partial apply bit-xor))))))
 
 (defn day-10b-solution
   [input]
@@ -534,23 +534,26 @@
 
 (defn day-14a-solution
   [input]
-  (transduce
-    (comp
-      (map (partial format "%s-%d" input))
-      (map hash-str)
-      cat
-      (map #(Integer/bitCount %)))
-    +
-    (range 128)))
+  (->> (range 128)
+       (partition-all 32)
+       (pmap (partial
+               transduce
+               (comp
+                 (map (partial format "%s-%d" input))
+                 (map hash-str)
+                 cat
+                 (map #(Integer/bitCount %)))
+               +))
+       (reduce +)))
 
 (defn- calc-bit-columns
   [byts]
-  (into []
-        (comp
-          (map bits)
-          (map-indexed (fn [i bs] (map #(+ (* 8 i) %) bs)))
-          cat)
-        byts))
+  (eduction
+    (comp
+      (map bits)
+      (map-indexed (fn [i bs] (map #(+ (* 8 i) %) bs)))
+      cat)
+    byts))
 
 (defn- adjacent-coords
   [[a b]]
@@ -573,14 +576,18 @@
 (defn day-14b-solution
   [input]
   (loop [c 0
-         coords (into #{}
-                      (comp
-                        (map (partial format "%s-%d" input))
-                        (map hash-str)
-                        (map calc-bit-columns)
-                        (map-indexed (fn [i cs] (map (partial vector i) cs)))
-                        cat)
-                      (range 128))]
+         coords (->> (range 128)
+                     (partition-all 32)
+                     (pmap (partial
+                             into []
+                             (comp
+                               (map (partial format "%s-%d" input))
+                               (map hash-str)
+                               (map calc-bit-columns))))
+                     (into #{}
+                           (comp cat
+                                 (map-indexed (fn [i cs] (map (partial vector i) cs)))
+                                 cat)))]
     (if-not (empty? coords)
       (recur (inc c) (remove-a-region coords))
       c)))
