@@ -592,3 +592,62 @@
       (recur (inc c) (remove-a-region coords))
       c)))
 
+(defn- next-a
+  [a]
+  (-> a (* 16807) (mod 2147483647)))
+
+(defn- next-b
+  [b]
+  (-> b (* 48271) (mod 2147483647)))
+
+(defn- lower-16-bits-match?
+  [a b]
+  (->> (bit-xor a b)
+       (bit-and 65535)
+       zero?))
+
+(defn day-15a-solution
+  [init-a init-b]
+  (loop [n (int 4e7)
+         av init-a
+         bv init-b
+         matches 0]
+    (if (pos? n)
+      (recur
+        (dec n)
+        (next-a av)
+        (next-b bv)
+        (if-not (lower-16-bits-match? av bv)
+          matches
+          (inc matches)))
+      matches)))
+
+(defn- next-a-15b
+  [a]
+  (loop [a (next-a a)]
+    (if-not (zero? (bit-and a 3))
+      (recur (next-a a))
+      a)))
+
+(defn- next-b-15b
+  [b]
+  (loop [b (next-b b)]
+    (if-not (zero? (bit-and b 7))
+      (recur (next-b b))
+      b)))
+
+(defn day-15b-solution
+  [init-a init-b]
+  (loop [n (int 5e6)
+         av (next-a-15b init-a)
+         bv (next-b-15b init-b)
+         matches 0]
+    (if (pos? n)
+      (recur
+        (dec n)
+        (next-a-15b av)
+        (next-b-15b bv)
+        (if-not (lower-16-bits-match? av bv)
+          matches
+          (inc matches)))
+      matches)))

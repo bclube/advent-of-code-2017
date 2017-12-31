@@ -179,3 +179,9 @@
 
 (deftest day-14b-solution-test
   (is (= 1231 (day-14b-solution "flqrgnkx"))))
+
+(deftest day-15a-solution-test
+  (is (= 588 (day-15a-solution 65 8921))))
+
+(deftest day-15b-solution-test
+  (is (= 309 (day-15b-solution 65 8921))))
