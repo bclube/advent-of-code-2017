@@ -174,14 +174,14 @@
                                4: 4
                                6: 4"))))
 
-(deftest day-14a-solution-test
+(deftest ^:slow day-14a-solution-test
   (is (= 8108 (day-14a-solution "flqrgnkx"))))
 
-(deftest day-14b-solution-test
+(deftest ^:slow day-14b-solution-test
   (is (= 1231 (day-14b-solution "flqrgnkx"))))
 
-(deftest day-15a-solution-test
+(deftest ^:slow day-15a-solution-test
   (is (= 588 (day-15a-solution 65 8921))))
 
-(deftest day-15b-solution-test
+(deftest ^:slow day-15b-solution-test
   (is (= 309 (day-15b-solution 65 8921))))
