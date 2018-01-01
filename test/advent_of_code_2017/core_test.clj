@@ -185,3 +185,9 @@
 
 (deftest ^:slow day-15b-solution-test
   (is (= 309 (day-15b-solution 65 8921))))
+
+(deftest day-16a-solution-impl-test
+  (is (= "baedc" (day-16a-solution-impl "abcde" "s1,x3/4,pe/b"))))
+
+(deftest day-16b-solution-test
+  (is (= "baedc" (day-16b-solution "abcde" "s1,x3/4,pe/b"))))

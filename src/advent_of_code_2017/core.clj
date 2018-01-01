@@ -651,3 +651,80 @@
           matches
           (inc matches)))
       matches)))
+
+(defn- shift-position-mapper
+  [n shift-amount]
+  (into {}
+        (for [i (range n)]
+          [i (mod (+ i shift-amount) n)])))
+
+(defn- swap-mapper
+  [i j]
+  {i j
+   j i})
+
+(defn- compile-day-16-mapper
+  [n instruction]
+  (or (if-let [[_ shift-amount] (re-matches #"s(\d+)" instruction)]
+        (shift-position-mapper n (Integer/parseInt shift-amount)))
+      (if-let [[_ from to] (re-matches #"x(\d+)/(\d+)" instruction)]
+        (swap-mapper (Integer/parseInt from) (Integer/parseInt to)))
+      (if-let [[_ from to] (re-matches #"p([a-z])/([a-z])" instruction)]
+        (swap-mapper (first from) (first to)))
+      (throw (format "Invalid instruction: %s" instruction))))
+
+(defn- merge-day-16-mapper
+  [acc mapper]
+  (into {}
+        (map (fn [[k v]] [k (get mapper v v)]))
+        acc))
+
+(defn- identity-mapper
+  [vs]
+  (into {}
+        (map (juxt identity identity))
+        (concat vs (-> vs count range))))
+
+(defn- parse-day-16-instructions
+  [vs instructions]
+  (->> instructions
+       (re-seq #"[^,\s]+")
+       (transduce
+         (map (partial compile-day-16-mapper (count vs)))
+         (completing merge-day-16-mapper)
+         (identity-mapper vs))))
+
+(defn- apply-day-16-mapper
+  [in-str mapper]
+  (->> in-str
+       (map-indexed (fn [i v] [(get mapper i i) (get mapper v v)]))
+       (sort-by first)
+       (map second)
+       (apply str)))
+
+(defn day-16a-solution-impl
+  [start-pos instructions]
+  (->> instructions
+       (parse-day-16-instructions start-pos)
+       (apply-day-16-mapper start-pos)))
+
+(defn day-16a-solution
+  [input]
+  (day-16a-solution-impl "abcdefghijklmnop" input))
+
+(defn- merge-day-16-mapper-n-times
+  [n mapper]
+  (cond
+    (<= n 1) mapper
+    (even? n) (recur (quot n 2) (merge-day-16-mapper mapper mapper))
+    :else (->> (merge-day-16-mapper mapper mapper)
+               (merge-day-16-mapper-n-times (quot n 2))
+               (merge-day-16-mapper mapper))))
+
+(defn day-16b-solution
+  [input]
+  (let [start-position "abcdefghijklmnop"]
+    (->> input
+         (parse-day-16-instructions start-position)
+         (merge-day-16-mapper-n-times (int 1e9))
+         (apply-day-16-mapper start-position))))
