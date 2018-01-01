@@ -702,16 +702,6 @@
        (map second)
        (apply str)))
 
-(defn day-16a-solution-impl
-  [start-pos instructions]
-  (->> instructions
-       (parse-day-16-instructions start-pos)
-       (apply-day-16-mapper start-pos)))
-
-(defn day-16a-solution
-  [input]
-  (day-16a-solution-impl "abcdefghijklmnop" input))
-
 (defn- merge-day-16-mapper-n-times
   [n mapper]
   (cond
@@ -721,10 +711,18 @@
                (merge-day-16-mapper-n-times (quot n 2))
                (merge-day-16-mapper mapper))))
 
+(defn day-16-solution-impl
+  [start-pos n-iterations instructions]
+  (->> instructions
+       (parse-day-16-instructions start-pos)
+       (merge-day-16-mapper-n-times n-iterations)
+       (apply-day-16-mapper start-pos)))
+
+(defn day-16a-solution
+  [input]
+  (day-16-solution-impl "abcdefghijklmnop" 1 input))
+
 (defn day-16b-solution
   [input]
-  (let [start-position "abcdefghijklmnop"]
-    (->> input
-         (parse-day-16-instructions start-position)
-         (merge-day-16-mapper-n-times (int 1e9))
-         (apply-day-16-mapper start-position))))
+  (day-16-solution-impl "abcdefghijklmnop" (int 1e9) input))
+
