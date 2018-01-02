@@ -189,3 +189,9 @@
 (deftest day-16-solution-impl-test
   (is (= "baedc" (day-16-solution-impl "abcde" 1 "s1,x3/4,pe/b")))
   (is (= "ceadb" (day-16-solution-impl "abcde" 2 "s1,x3/4,pe/b"))))
+
+(deftest day-17a-solution-test
+  (is (= 638 (day-17a-solution 3))))
+
+(deftest ^:slow day-17b-solution-test
+  (is (= 1080289 (day-17b-solution 363))))

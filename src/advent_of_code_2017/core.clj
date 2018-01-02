@@ -726,3 +726,29 @@
   [input]
   (day-16-solution-impl "abcdefghijklmnop" (int 1e9) input))
 
+(defn day-17a-solution
+  [input]
+  (loop [n 1
+         buf [0]]
+    (if (<= n 2017)
+      (recur
+        (inc n)
+        (into [n]
+              (comp
+                (drop (inc (mod input n)))
+                (take n))
+              (concat buf buf)))
+      (second buf))))
+
+(defn day-17b-solution
+  [input]
+  (loop [n 1
+         pos 0
+         v nil]
+    (if (<= n (int 5e7))
+      (let [new-pos (inc (mod (+ input pos) n))]
+        (recur
+          (inc n)
+          new-pos
+          (if-not (= 1 new-pos) v n)))
+      v)))
