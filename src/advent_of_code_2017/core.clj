@@ -752,3 +752,186 @@
           new-pos
           (if-not (= 1 new-pos) v n)))
       v)))
+
+(defn- get-reg
+  [reg state]
+  (get-in state [:registers reg] 0))
+
+(defn send-value
+  [value state]
+  (-> state
+      (update :send-count (fnil inc 0))
+      (assoc :to-send value)))
+
+(defn send-register
+  [reg state]
+  (send-value (get-reg reg state) state))
+
+(defn set-register-value
+  [reg new-value state]
+  (assoc-in state [:registers reg] new-value))
+
+(defn copy-register-value
+  [reg-to reg-from state]
+  (set-register-value reg-to (get-reg reg-from state) state))
+
+(defn increment-register
+  [reg amount state]
+  (update-in state [:registers reg] (fnil + 0) amount))
+
+(defn add-registers
+  [reg-to reg-from state]
+  (increment-register reg-to (get-reg reg-from state) state))
+
+(defn multiply-register
+  [reg amount state]
+  (update-in state [:registers reg] (fnil * 0) amount))
+
+(defn multiply-registers
+  [reg-to reg-from state]
+  (multiply-register reg-to (get-reg reg-from state) state))
+
+(defn mod-register
+  [reg amount state]
+  (update-in state [:registers reg] (fnil mod 0) amount))
+
+(defn mod-registers
+  [reg-to reg-from state]
+  (mod-register reg-to (get-reg reg-from state) state))
+
+(defn receive-message
+  [reg state]
+  (if-let [msg (peek (:message-queue state))]
+    (-> state
+        (update :message-queue pop)
+        (assoc :last-received msg)
+        (assoc-in [:registers reg] msg))
+    (assoc state :next-instruction (:current-instruction state))))
+
+(defn jump-if-val-pos
+  [v distance state]
+  (if (pos? v)
+    (assoc state :next-instruction (+ distance (get state :current-instruction)))
+    state))
+
+(defn jump-if-pos
+  [reg distance state]
+  (jump-if-val-pos (get-reg reg state) distance state))
+
+(defn jump-reg-amount-if-pos
+  [reg-test reg-magnitude state]
+  (jump-if-pos reg-test (get-reg reg-magnitude state) state))
+
+(defn- parse-day-18-instruction
+  [line]
+  (let [line (clojure.string/trim line)]
+    (or (if-let [[_ value] (re-matches #"snd (-?\d+)" line)]
+          (partial send-value
+                   (Integer/parseInt value)))
+        (if-let [[_ reg] (re-matches #"snd (\w)" line)]
+          (partial send-register
+                   (first reg)))
+        (if-let [[_ reg value] (re-matches #"set (\w) (-?\d+)" line)]
+          (partial set-register-value
+                   (first reg)
+                   (Integer/parseInt value)))
+        (if-let [[_ reg-to reg-from] (re-matches #"set (\w) (\w)" line)]
+          (partial copy-register-value
+                   (first reg-to)
+                   (first reg-from)))
+        (if-let [[_ reg amount] (re-matches #"add (\w) (-?\d+)" line)]
+          (partial increment-register
+                   (first reg)
+                   (Integer/parseInt amount)))
+        (if-let [[_ reg-to reg-from] (re-matches #"add (\w) (\w)" line)]
+          (partial add-registers
+                   (first reg-to)
+                   (first reg-from)))
+        (if-let [[_ reg amount] (re-matches #"mul (\w) (-?\d+)" line)]
+          (partial multiply-register
+                   (first reg)
+                   (Integer/parseInt amount)))
+        (if-let [[_ reg-to reg-from] (re-matches #"mul (\w) (\w)" line)]
+          (partial multiply-registers
+                   (first reg-to)
+                   (first reg-from)))
+        (if-let [[_ reg amount] (re-matches #"mod (\w) (-?\d+)" line)]
+          (partial mod-register
+                   (first reg)
+                   (Integer/parseInt amount)))
+        (if-let [[_ reg-to reg-from] (re-matches #"mod (\w) (\w)" line)]
+          (partial mod-registers
+                   (first reg-to)
+                   (first reg-from)))
+        (if-let [[_ reg] (re-matches #"rcv (\w)" line)]
+          (partial receive-message
+                   (first reg)))
+        (if-let [[_ v-cmp distance] (re-matches #"jgz (-?\d+) (-?\d+)" line)]
+          (partial jump-if-val-pos
+                   (Integer/parseInt v-cmp)
+                   (Integer/parseInt distance)))
+        (if-let [[_ reg distance] (re-matches #"jgz (\w) (-?\d+)" line)]
+          (partial jump-if-pos
+                   (first reg)
+                   (Integer/parseInt distance)))
+        (if-let [[_ reg-test reg-magnitude] (re-matches #"jgz (\w) (\w)" line)]
+          (partial jump-reg-amount-if-pos
+                   (first reg-test)
+                   (first reg-magnitude)))
+        (throw (Exception. line)))))
+
+(defn init-prog
+  [p]
+  {:registers {\p p}
+   :next-instruction 0
+   :message-queue clojure.lang.PersistentQueue/EMPTY})
+
+(defn enqueue-message
+  [prog value]
+  (update prog :message-queue conj value))
+
+(defn- advance-day-18-prog
+  [instructions prog]
+  (if-some [instr (->> prog :next-instruction (get instructions))]
+    (-> prog
+        (assoc :current-instruction (:next-instruction prog))
+        (update :next-instruction inc)
+        instr)
+    (assoc prog :done? true)))
+
+(defn day-18a-solution
+  [input]
+  (let [instructions (into []
+                           (map parse-day-18-instruction)
+                           (clojure.string/split-lines input))]
+    (loop [prog (init-prog 0)]
+      (cond
+        (:last-received prog) (:last-received prog)
+        (:done? prog) nil
+        (:to-send prog) (recur (-> prog ; send message to self
+                                   (dissoc :to-send)
+                                   (enqueue-message (:to-send prog))))
+        (= (:current-instruction prog)
+           (:next-instruction prog)) (recur (update prog :next-instruction inc)) ; Blocked on empty message queue. Manually "unstick" it.
+        :default (recur (advance-day-18-prog instructions prog))))))
+
+(defn day-18b-solution
+  [input]
+  (let [instructions (into []
+                           (map parse-day-18-instruction)
+                           (clojure.string/split-lines input))]
+    (loop [prog-0 (init-prog 0)
+           prog-1 (init-prog 1)]
+      (cond
+        (:done? prog-1) (get prog-1 :send-count 0)
+        (:to-send prog-0) (recur (dissoc prog-0 :to-send) ; send message from prog-0 to prog-1
+                                 (enqueue-message prog-1 (:to-send prog-0)))
+        (:to-send prog-1) (recur (enqueue-message prog-0 (:to-send prog-1)) ; send message from prog-1 to prog-0
+                                 (dissoc prog-1 :to-send))
+        :default (let [new-prog-0 (advance-day-18-prog instructions prog-0)
+                       new-prog-1 (advance-day-18-prog instructions prog-1)]
+                   (if (or (not= new-prog-0 prog-0)
+                           (not= new-prog-1 prog-1))
+                     (recur new-prog-0 new-prog-1)
+                     (get prog-1 :send-count 0)))))))
+
