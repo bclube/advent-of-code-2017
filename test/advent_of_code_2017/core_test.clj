@@ -310,3 +310,11 @@
                                           "     +B-+  +--+ "])] ; hack to prevent code automatic code formatting from messing with whitespace in puzzle
     (is (= "ABCDEF" (day-19a-solution puzzle)))
     (is (= 38 (day-19b-solution puzzle)))))
+
+(deftest day-20-solutions-test
+  (is (= 0 (day-20a-solution "p=<3,0,0>, v=<2,0,0>, a=<-1,0,0>
+                              p=<4,0,0>, v=<0,0,0>, a=<-2,0,0>")))
+  (is (= 1 (day-20b-solution "p=<-6,0,0>, v=<3,0,0>, a=<0,0,0>
+                              p=<-4,0,0>, v=<2,0,0>, a=<0,0,0>
+                              p=<-2,0,0>, v=<1,0,0>, a=<0,0,0>
+                              p=<3,0,0>, v=<-1,0,0>, a=<0,0,0>"))))

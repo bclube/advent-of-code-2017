@@ -932,3 +932,62 @@
   [input]
   (let [[step-count _] (day-19-solution input)]
     step-count))
+
+(defn- p-fn
+  [p v a]
+  (let [half-a (/ a 2.0)
+        half-a-plus-v (+ v half-a)]
+    (fn [t] (+ p
+               (* t half-a-plus-v)
+               (* t t half-a)))))
+
+(defn- parse-day-20-particle
+  [line]
+  (let [[xp yp zp xv yv zv xa ya za] (->> line
+                                          clojure.string/trim
+                                          (re-matches #"p=<(.*),(.*),(.*)>, v=<(.*),(.*),(.*)>, a=<(.*),(.*),(.*)>")
+                                          rest
+                                          (map #(Integer/parseInt %)))
+        x-fn (p-fn xp xv xa)
+        y-fn (p-fn yp yv ya)
+        z-fn (p-fn zp zv za)]
+    (fn [t] [(x-fn t) (y-fn t) (z-fn t)])))
+
+(defn- manhattan-distance
+  [pos]
+  (transduce
+    (map #(Math/abs %))
+    +
+    pos))
+
+(defn day-20a-solution
+  [input]
+  (->> input
+       clojure.string/split-lines
+       (eduction
+         (comp
+           (map parse-day-20-particle)
+           (map #(% 1e12))
+           (map manhattan-distance)
+           (map-indexed vector)))
+       (reduce (partial min-key second))
+       first))
+
+(defn day-20b-solution
+  [input]
+  (loop [t 0
+         p-fns (->> input
+                    clojure.string/split-lines
+                    (map parse-day-20-particle)
+                    (into []))]
+    (if (and (< t (int 1e4))
+             (-> p-fns count (> 1)))
+      (recur (inc t)
+             (->> p-fns
+                  (group-by #(% t))
+                  vals
+                  (into []
+                        (comp
+                          (remove #(-> % count (> 1)))
+                          cat))))
+      (count p-fns))))
