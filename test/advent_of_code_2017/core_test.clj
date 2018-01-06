@@ -300,3 +300,13 @@
                               rcv b
                               rcv c
                               rcv d"))))
+
+(deftest day-19-solutions-test
+  (let [puzzle (clojure.string/join "\n" ["     |          "
+                                          "     |  +--+    "
+                                          "     A  |  C    "
+                                          " F---|----E|--+ "
+                                          "     |  |  |  D "
+                                          "     +B-+  +--+ "])] ; hack to prevent code automatic code formatting from messing with whitespace in puzzle
+    (is (= "ABCDEF" (day-19a-solution puzzle)))
+    (is (= 38 (day-19b-solution puzzle)))))

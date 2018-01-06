@@ -892,3 +892,43 @@
                      (recur new-prog-0 new-prog-1)
                      (get prog-1 :send-count 0)))))))
 
+(defn- get-map-char
+  [mp [r c]]
+  (-> mp
+      (get r [])
+      (get c \space)))
+
+(defn- next-pos
+  [[r c :as pos] [dr dc :as dir]]
+  [(+ r dr) (+ c dc)])
+
+(defn- turn
+  [[r c :as pos] [dr dc :as dir] mp]
+  (some #(if (->> % (next-pos pos) (get-map-char mp) (not= \space)) %)
+        [[dc dr] [(- dc) (- dr)]]))
+
+(defn- day-19-solution
+  [input]
+  (let [mp (->> input clojure.string/split-lines (into []))
+        start-col (-> (get mp 0) (clojure.string/index-of \|))]
+    (loop [step-count 1
+           position [0 start-col]
+           direction [1 0]
+           letters []]
+      (let [nxt (next-pos position direction)
+            chr (get-map-char mp nxt)]
+        (cond
+          (re-matches #"[a-zA-Z]" (str chr)) (recur (inc step-count) nxt direction (conj letters chr))
+          (= \+ chr) (recur (inc step-count) nxt (turn nxt direction mp) letters)
+          (#{\| \-} chr) (recur (inc step-count) nxt direction letters)
+          :else [step-count (apply str letters)])))))
+
+(defn day-19a-solution
+  [input]
+  (let [[_ letters] (day-19-solution input)]
+    letters))
+
+(defn day-19b-solution
+  [input]
+  (let [[step-count _] (day-19-solution input)]
+    step-count))
