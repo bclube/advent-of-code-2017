@@ -991,3 +991,99 @@
                           (remove #(-> % count (> 1)))
                           cat))))
       (count p-fns))))
+
+(defn- reverse-rows
+  [pattern]
+  [pattern
+   (map clojure.string/reverse pattern)])
+
+(defn- reverse-cols
+  [pattern]
+  [pattern
+   (reverse pattern)])
+
+(defn- transpose ; [row col] => [col row]
+  [pattern]
+  [pattern
+   (apply map str pattern)])
+
+(defn- pattern-lines
+  [pattern]
+  (clojure.string/split pattern #"/"))
+
+(defn- parse-day-21-pattern
+  [line]
+  (let [[_ l-pattern r-pattern] (->> line
+                                     clojure.string/trim
+                                     (re-matches #"(.+) => (.+)"))
+        l-pat (pattern-lines l-pattern)
+        r-pat (pattern-lines r-pattern)]
+    (eduction
+      (comp
+        (mapcat reverse-rows)
+        (mapcat reverse-cols)
+        (mapcat transpose)
+        (map clojure.string/join)
+        (map #(vector % r-pat)))
+      [l-pat])))
+
+(defn- parse-day-21-input-patterns
+  [input]
+  (->> input
+       clojure.string/split-lines
+       (into {}
+             (mapcat parse-day-21-pattern))))
+
+(defn- enhance-pattern
+  [pattern pattern-map]
+  (let [block-size (if (-> pattern count even?) 2 3)
+        blocks-in-row (-> pattern count (quot block-size))]
+    (into []
+          (comp
+            ; [1122 1122 3344 3344]
+            (partition-all block-size)
+            ; [[1122 1122] [3344 3344]]
+            (mapcat (partial apply interleave))
+            ; [\1 \1 \1 \1 \2 \2 \2 \2 \3 \3 \3 \3 \4 \4 \4 \4]
+            (partition-all (* block-size block-size))
+            ; [[\1 \1 \1 \1] [\2 \2 \2 \2] [\3 \3 \3 \3] [\4 \4 \4 \4]]
+            (map clojure.string/join)
+            ; [1111 2222 3333 4444]
+            (map pattern-map)
+            ; [[aaa aaa aaa] [bbb bbb bbb] [ccc ccc ccc] [ddd ddd ddd]]
+            (partition-all blocks-in-row)
+            ; [[[aaa aaa aaa] [bbb bbb bbb]] [[ccc ccc ccc] [ddd ddd ddd]]]
+            (mapcat (partial apply interleave))
+            ; [aaa bbb aaa bbb aaa bbb ccc ddd ccc ddd ccc ddd]
+            (partition-all blocks-in-row)
+            ; [[aaa bbb] [aaa bbb] [aaa bbb] [ccc ddd] [ccc ddd] [ccc ddd]]
+            (map clojure.string/join)
+            ; [aaabbb aaabbb aaabbb cccddd cccddd cccddd]
+            )
+          pattern)))
+
+(defn- count-set-pixels
+  [pattern]
+  (transduce
+    (comp
+      (map (partial keep #{\#}))
+      (map count))
+    +
+    pattern))
+
+(defn day-21a-solution-impl
+  [iterations input]
+  (let [pattern-map (parse-day-21-input-patterns input)]
+    (loop [i iterations
+           pattern (pattern-lines ".#./..#/###")]
+      (if (pos? i)
+        (recur (dec i) (enhance-pattern pattern pattern-map))
+        (count-set-pixels pattern)))))
+
+(defn day-21a-solution
+  [input]
+  (day-21a-solution-impl 5 input))
+
+(defn day-21b-solution
+  [input]
+  (day-21a-solution-impl 18 input))
