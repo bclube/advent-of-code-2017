@@ -322,3 +322,14 @@
 (deftest day-21-solutions-test
   (is (= 12 (day-21a-solution-impl 2 "../.# => ##./#../...
                                       .#./..#/### => #..#/..../..../#..#"))))
+
+(let [grid "..#
+            #..
+            ..."]
+  (deftest day-22-solutions-test
+    (is (= 41 (day-22a-solution-impl 70 grid)))
+    (is (= 5587 (day-22a-solution-impl 10000 grid)))
+    (is (= 26 (day-22b-solution-impl 100 grid))))
+  (deftest ^:slow day-22-slow-tests
+    (is (= 2511944 (day-22b-solution-impl 10000000 grid)))))
+

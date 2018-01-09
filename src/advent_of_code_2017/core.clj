@@ -1087,3 +1087,66 @@
 (defn day-21b-solution
   [input]
   (day-21a-solution-impl 18 input))
+
+(defn- turn-right
+  [[r c]]
+  [c (- r)])
+
+(defn- turn-left
+  [[r c]]
+  [(- c) r])
+
+(defn- reverse-dir
+  [[r c]]
+  [(- r) (- c)])
+
+(defn day-22-solution-impl
+  [steps grid inf-v turn-fn infect-fn]
+  (let [lines (clojure.string/split-lines grid)
+        infected-coords (into {}
+                              (comp
+                                (map clojure.string/trim)
+                                (map-indexed (fn [r vs]
+                                               (keep-indexed (fn [c v] (if (= \# v) [r c])) vs)))
+                                cat
+                                (map #(vector % inf-v)))
+                              lines)
+        middle (-> lines count (quot 2))]
+    (loop [s steps
+           infect-count 0
+           dir [-1 0]
+           loc [middle middle]
+           grid infected-coords]
+      (if (pos? s)
+        (let [grid-val (get grid loc 0)
+              new-dir (turn-fn grid-val dir)
+              new-infect-state (infect-fn grid-val)
+              new-grid (assoc grid loc new-infect-state)
+              new-infect-count (if (not= inf-v new-infect-state) infect-count (inc infect-count))
+              new-loc (next-pos new-dir loc)]
+          (recur (dec s) new-infect-count new-dir new-loc new-grid))
+        infect-count))))
+
+(defn day-22a-solution-impl
+  [steps grid]
+  (day-22-solution-impl steps grid 1
+                        (fn [i dir] (if (zero? i) (turn-left dir) (turn-right dir)))
+                        #(-> % inc (mod 2))))
+
+(defn day-22b-solution-impl
+  [steps grid]
+  (day-22-solution-impl steps grid 2
+                        (fn [i dir] (case i
+                                      0 (turn-left dir)
+                                      1 dir
+                                      2 (turn-right dir)
+                                      3 (reverse-dir dir)))
+                        #(-> % inc (mod 4))))
+
+(defn day-22a-solution
+  [input]
+  (day-22a-solution-impl 10000 input))
+
+(defn day-22b-solution
+  [input]
+  (day-22b-solution-impl 10000000 input))
