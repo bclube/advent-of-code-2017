@@ -781,37 +781,60 @@
         (assoc-in [:registers reg] msg))
     (assoc state :next-instruction (:current-instruction state))))
 
-(defn jump-if-val-pos
-  [v distance state]
-  (if (pos? v)
+(defn jump-if-val
+  [v distance if-fn state]
+  (if (if-fn v)
     (assoc state :next-instruction (+ distance (get state :current-instruction)))
     state))
 
-(defn jump-if-pos
-  [reg distance state]
-  (jump-if-val-pos (get-reg reg state) distance state))
+(defn jump-if-reg
+  [reg distance if-fn state]
+  (jump-if-val (get-reg reg state) distance if-fn state))
 
-(defn jump-reg-amount-if-pos
-  [reg-test reg-magnitude state]
-  (jump-if-pos reg-test (get-reg reg-magnitude state) state))
+(defn jump-res-amount-if
+  [reg-test reg-magnitude if-fn state]
+  (jump-if-reg reg-test (get-reg reg-magnitude state) if-fn state))
 
 (defn- parse-day-18-instruction
   [line]
   (condp re-matches (clojure.string/trim line)
     #"snd (-?\d+)" :>> (fn [[_ value]] (partial send-value (Integer/parseInt value)))
-    #"snd (\w)" :>> (fn [[_ reg]] (partial send-register (first reg)))
-    #"set (\w) (-?\d+)" :>> (fn [[_ reg value]] (partial register-value-op (first reg) (Integer/parseInt value) (fn [_ v] v)))
-    #"set (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial registers-op (first reg-to) (first reg-from) (fn [_ v] v)))
-    #"add (\w) (-?\d+)" :>> (fn [[_ reg amount]] (partial register-value-op (first reg) (Integer/parseInt amount) +))
-    #"add (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial registers-op (first reg-to) (first reg-from) +))
-    #"mul (\w) (-?\d+)" :>> (fn [[_ reg amount]] (partial register-value-op (first reg) (Integer/parseInt amount) *))
-    #"mul (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial registers-op (first reg-to) (first reg-from) *))
-    #"mod (\w) (-?\d+)" :>> (fn [[_ reg amount]] (partial register-value-op (first reg) (Integer/parseInt amount) mod))
-    #"mod (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial registers-op (first reg-to) (first reg-from) mod))
-    #"rcv (\w)" :>> (fn [[_ reg]] (partial receive-message (first reg)))
-    #"jgz (-?\d+) (-?\d+)" :>> (fn [[_ v-cmp distance]] (partial jump-if-val-pos (Integer/parseInt v-cmp) (Integer/parseInt distance)))
-    #"jgz (\w) (-?\d+)" :>> (fn [[_ reg distance]] (partial jump-if-pos (first reg) (Integer/parseInt distance)))
-    #"jgz (\w) (\w)" :>> (fn [[_ reg-test reg-magnitude]] (partial jump-reg-amount-if-pos (first reg-test) (first reg-magnitude)))))
+
+    #"(\w+) (\w)"
+    :>> (fn [[_ op-name reg]]
+          (let [reg (first reg)]
+            (case op-name
+              "rcv" (partial receive-message reg)
+              "snd" (partial send-register reg))))
+
+    #"(\w+) (-?\d+) (-?\d+)"
+    :>> (fn [[_ op-name val-r val-l]]
+          (let [val-r (Integer/parseInt val-r)
+                val-l (Integer/parseInt val-l)]
+            (case op-name
+              "jgz" (partial jump-if-val val-r val-l pos?))))
+
+    #"(\w+) (\w) (-?\d+)"
+    :>> (fn [[_ op-name reg value]]
+          (let [reg (first reg)
+                value (Integer/parseInt value)]
+            (case op-name
+              "set" (partial register-value-op reg value (fn [_ v] v))
+              "add" (partial register-value-op reg value +)
+              "mul" (partial register-value-op reg value *)
+              "mod" (partial register-value-op reg value mod)
+              "jgz" (partial jump-if-reg reg value pos?))))
+
+    #"(\w+) (\w) (\w)"
+    :>> (fn [[_ op-name reg-to reg-from]]
+          (let [reg-to (first reg-to)
+                reg-from (first reg-from)]
+            (case op-name
+              "set" (partial registers-op reg-to reg-from (fn [_ v] v))
+              "add" (partial registers-op reg-to reg-from +)
+              "mul" (partial registers-op reg-to reg-from *)
+              "mod" (partial registers-op reg-to reg-from mod)
+              "jgz" (partial jump-res-amount-if reg-to reg-from pos?))))))
 
 (defn init-prog
   [p]

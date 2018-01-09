@@ -237,8 +237,8 @@
 (deftest day-18-prog-jump-test
   (let [prog (assoc (init-prog 1) :current-instruction 5 :next-instruction 6)]
     (is (= {\p 1} (:registers prog)))
-    (is (= 15 (->> prog (jump-if-pos \p 10) :next-instruction)))
-    (is (= 6 (->> prog (jump-if-pos \a 10) :next-instruction)))))
+    (is (= 15 (->> prog (jump-if-reg \p 10 pos?) :next-instruction)))
+    (is (= 6 (->> prog (jump-if-reg \a 10 pos?) :next-instruction)))))
 
 (deftest day-18b-solution-test
   (is (= 0 (day-18b-solution "rcv a")))
