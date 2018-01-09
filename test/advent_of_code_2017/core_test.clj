@@ -208,26 +208,6 @@
                               set a 1
                               jgz a -2"))))
 
-(deftest day-18-prog-arithmetic-tests
-  (let [prog (init-prog 1)]
-    (is (= {\p 1} (:registers prog)))
-    (is (= {\p 9} (->> prog (set-register-value \p 9) :registers)))
-    (is (= {\p 1 \a 88} (->> prog (set-register-value \a 88) :registers)))
-    (is (= {\p 0} (->> prog (copy-register-value \p \a) :registers)))
-    (is (= {\p 1 \a 1} (->> prog (copy-register-value \a \p) :registers)))
-    (is (= {\p 1 \a 0} (->> prog (copy-register-value \a \b) :registers)))
-    (is (= {\p -1} (->> prog (increment-register \p -2) :registers)))
-    (is (= {\p 1 \a 9} (->> prog (increment-register \a 9) :registers)))
-    (is (= {\p -3} (->> prog (multiply-register \p -3) :registers)))
-    (is (= {\p 1 \a 0} (->> prog (multiply-register \a 999) :registers)))
-    (is (= {\p 1 \a 0} (->> prog (mod-register \a 100) :registers)))
-    (let [prog (->> prog (set-register-value \p 7) (set-register-value \a 5))]
-      (is (= {\p 7 \a 5} (:registers prog)))
-      (is (= {\p 12 \a 5} (->> prog (add-registers \p \a) :registers)))
-      (is (= {\p 35 \a 5} (->> prog (multiply-registers \p \a) :registers)))
-      (is (= {\p 3 \a 5} (->> prog (mod-register \p 4) :registers)))
-      (is (= {\p 2 \a 5} (->> prog (mod-registers \p \a) :registers))))))
-
 (deftest day-18-prog-send-message-test
   (let [prog (init-prog 1)]
     (is (-> prog (contains? :to-send) false?))
@@ -258,14 +238,7 @@
   (let [prog (assoc (init-prog 1) :current-instruction 5 :next-instruction 6)]
     (is (= {\p 1} (:registers prog)))
     (is (= 15 (->> prog (jump-if-pos \p 10) :next-instruction)))
-    (is (= 6 (->> prog (jump-if-pos \a 10) :next-instruction)))
-    (let [prog (set-register-value \p 0 prog)]
-      (is (= {\p 0} (:registers prog)))
-      (is (= 6 (->> prog (jump-if-pos \p 10) :next-instruction))))
-    (let [prog (set-register-value \a -5 prog)]
-      (is (= {\p 1 \a -5} (:registers prog)))
-      (is (= 0 (->> prog (jump-reg-amount-if-pos \p \a) :next-instruction)))
-      (is (= 6 (->> prog (jump-reg-amount-if-pos \a \p) :next-instruction))))))
+    (is (= 6 (->> prog (jump-if-pos \a 10) :next-instruction)))))
 
 (deftest day-18b-solution-test
   (is (= 0 (day-18b-solution "rcv a")))

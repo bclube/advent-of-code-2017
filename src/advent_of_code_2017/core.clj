@@ -764,37 +764,13 @@
   [reg state]
   (send-value (get-reg reg state) state))
 
-(defn set-register-value
-  [reg new-value state]
-  (assoc-in state [:registers reg] new-value))
+(defn- register-value-op
+  [reg value update-fn state]
+  (update-in state [:registers reg] (fnil update-fn 0) value))
 
-(defn copy-register-value
-  [reg-to reg-from state]
-  (set-register-value reg-to (get-reg reg-from state) state))
-
-(defn increment-register
-  [reg amount state]
-  (update-in state [:registers reg] (fnil + 0) amount))
-
-(defn add-registers
-  [reg-to reg-from state]
-  (increment-register reg-to (get-reg reg-from state) state))
-
-(defn multiply-register
-  [reg amount state]
-  (update-in state [:registers reg] (fnil * 0) amount))
-
-(defn multiply-registers
-  [reg-to reg-from state]
-  (multiply-register reg-to (get-reg reg-from state) state))
-
-(defn mod-register
-  [reg amount state]
-  (update-in state [:registers reg] (fnil mod 0) amount))
-
-(defn mod-registers
-  [reg-to reg-from state]
-  (mod-register reg-to (get-reg reg-from state) state))
+(defn- registers-op
+  [reg-to reg-from update-fn state]
+  (register-value-op reg-to (get-reg reg-from state) update-fn state))
 
 (defn receive-message
   [reg state]
@@ -824,14 +800,14 @@
   (condp re-matches (clojure.string/trim line)
     #"snd (-?\d+)" :>> (fn [[_ value]] (partial send-value (Integer/parseInt value)))
     #"snd (\w)" :>> (fn [[_ reg]] (partial send-register (first reg)))
-    #"set (\w) (-?\d+)" :>> (fn [[_ reg value]] (partial set-register-value (first reg) (Integer/parseInt value)))
-    #"set (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial copy-register-value (first reg-to) (first reg-from)))
-    #"add (\w) (-?\d+)" :>> (fn [[_ reg amount]] (partial increment-register (first reg) (Integer/parseInt amount)))
-    #"add (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial add-registers (first reg-to) (first reg-from)))
-    #"mul (\w) (-?\d+)" :>> (fn [[_ reg amount]] (partial multiply-register (first reg) (Integer/parseInt amount)))
-    #"mul (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial multiply-registers (first reg-to) (first reg-from)))
-    #"mod (\w) (-?\d+)" :>> (fn [[_ reg amount]] (partial mod-register (first reg) (Integer/parseInt amount)))
-    #"mod (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial mod-registers (first reg-to) (first reg-from)))
+    #"set (\w) (-?\d+)" :>> (fn [[_ reg value]] (partial register-value-op (first reg) (Integer/parseInt value) (fn [_ v] v)))
+    #"set (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial registers-op (first reg-to) (first reg-from) (fn [_ v] v)))
+    #"add (\w) (-?\d+)" :>> (fn [[_ reg amount]] (partial register-value-op (first reg) (Integer/parseInt amount) +))
+    #"add (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial registers-op (first reg-to) (first reg-from) +))
+    #"mul (\w) (-?\d+)" :>> (fn [[_ reg amount]] (partial register-value-op (first reg) (Integer/parseInt amount) *))
+    #"mul (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial registers-op (first reg-to) (first reg-from) *))
+    #"mod (\w) (-?\d+)" :>> (fn [[_ reg amount]] (partial register-value-op (first reg) (Integer/parseInt amount) mod))
+    #"mod (\w) (\w)" :>> (fn [[_ reg-to reg-from]] (partial registers-op (first reg-to) (first reg-from) mod))
     #"rcv (\w)" :>> (fn [[_ reg]] (partial receive-message (first reg)))
     #"jgz (-?\d+) (-?\d+)" :>> (fn [[_ v-cmp distance]] (partial jump-if-val-pos (Integer/parseInt v-cmp) (Integer/parseInt distance)))
     #"jgz (\w) (-?\d+)" :>> (fn [[_ reg distance]] (partial jump-if-pos (first reg) (Integer/parseInt distance)))
