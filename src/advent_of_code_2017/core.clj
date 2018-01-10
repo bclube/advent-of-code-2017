@@ -1,9 +1,8 @@
 (ns advent-of-code-2017.core
-  (:require [clj-http.client :as client]
-            [environ.core :refer [env]]))
+  (:require [clj-http.client :as client]))
 
 (def cookie
-  (:cookie env))
+  (System/getenv "cookie"))
 
 (defn- input-url
   [day]
