@@ -812,7 +812,8 @@
           (let [val-r (Integer/parseInt val-r)
                 val-l (Integer/parseInt val-l)]
             (case op-name
-              "jgz" (partial jump-if-val val-r val-l pos?))))
+              "jgz" (partial jump-if-val val-r val-l pos?)
+              "jnz" (partial jump-if-val val-r val-l (complement zero?)))))
 
     #"(\w+) (\w) (-?\d+)"
     :>> (fn [[_ op-name reg value]]
@@ -821,9 +822,13 @@
             (case op-name
               "set" (partial register-value-op reg value (fn [_ v] v))
               "add" (partial register-value-op reg value +)
-              "mul" (partial register-value-op reg value *)
+              "sub" (partial register-value-op reg value -)
+              "mul" (comp
+                      #(update % :mul-count (fnil inc 0))
+                      (partial register-value-op reg value *))
               "mod" (partial register-value-op reg value mod)
-              "jgz" (partial jump-if-reg reg value pos?))))
+              "jgz" (partial jump-if-reg reg value pos?)
+              "jnz" (partial jump-if-reg reg value (complement zero?)))))
 
     #"(\w+) (\w) (\w)"
     :>> (fn [[_ op-name reg-to reg-from]]
@@ -832,9 +837,13 @@
             (case op-name
               "set" (partial registers-op reg-to reg-from (fn [_ v] v))
               "add" (partial registers-op reg-to reg-from +)
-              "mul" (partial registers-op reg-to reg-from *)
+              "sub" (partial registers-op reg-to reg-from -)
+              "mul" (comp
+                      #(update % :mul-count (fnil inc 0))
+                      (partial registers-op reg-to reg-from *))
               "mod" (partial registers-op reg-to reg-from mod)
-              "jgz" (partial jump-res-amount-if reg-to reg-from pos?))))))
+              "jgz" (partial jump-res-amount-if reg-to reg-from pos?)
+              "jnz" (partial jump-res-amount-if reg-to reg-from (complement zero?)))))))
 
 (defn init-prog
   [p]
@@ -1149,3 +1158,30 @@
 (defn day-22b-solution
   [input]
   (day-22b-solution-impl 10000000 input))
+
+(defn day-23a-solution
+  [input]
+  (let [instructions (into [] (map parse-day-18-instruction)
+                           (clojure.string/split-lines input))]
+    (loop [prog (init-prog 0)
+           reg nil]
+      (let [new-reg (get prog :registers)]
+        (if-not (= reg new-reg) (prn new-reg))
+        (if-not (:done? prog)
+          (recur (advance-day-18-prog instructions prog) new-reg)
+          (get prog :mul-count 0))))))
+
+(defn- prime?
+  [v]
+  (->> (range 2 (-> v Math/sqrt Math/floor int inc))
+       (not-any? #(->> % (mod v) zero?))))
+
+(defn day-23b-solution
+  "Manual translation of the assembly language program. Counts the number of
+   non-prime values in the given range."
+  []
+  (let [b 106700
+        c (+ b 17001)]
+    (->> (range b c 17)
+         (remove prime?)
+         count)))
