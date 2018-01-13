@@ -306,3 +306,14 @@
   (deftest ^:slow day-22-slow-tests
     (is (= 2511944 (day-22b-solution-impl 10000000 grid)))))
 
+(deftest day-24-solutions-test
+  (let [puzzle  "0/2
+                 2/2
+                 2/3
+                 3/4
+                 3/5
+                 0/1
+                 10/1
+                 9/10"]
+    (is (= 31 (day-24a-solution puzzle)))
+    (is (= 19 (day-24b-solution puzzle)))))

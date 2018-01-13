@@ -1184,3 +1184,52 @@
     (->> (range b c 17)
          (remove prime?)
          count)))
+
+(defn- find-day-24-max
+  [start-val inventory index max-fn]
+  (transduce
+    (comp
+      (remove #(zero? (get inventory % 0)))
+      (map (fn [[l r :as pair]]
+             (let [[v len] (find-day-24-max
+                             (if (= start-val l) r l)
+                             (update inventory pair dec)
+                             index
+                             max-fn)]
+               [(+ l r v) (inc len)]))))
+    (completing max-fn)
+    [0 0]
+    (get index start-val [])))
+
+(defn- parse-day-24-input
+  [input]
+  (let [pairs (->> input
+                   (re-seq #"\d+")
+                   (eduction
+                     (comp
+                       (map #(Integer/parseInt %))
+                       (partition-all 2)
+                       (map (partial apply vector)))))
+        inventory (frequencies pairs)
+        index (merge-with into
+                          (group-by first pairs)
+                          (group-by second pairs))]
+    [inventory index]))
+
+(defn- day-24-impl
+  [input mx-fn]
+  (let [[inventory index] (parse-day-24-input input)
+        [mv _] (find-day-24-max 0 inventory index mx-fn)]
+    mv))
+
+(defn day-24a-solution
+  [input]
+  (day-24-impl input (fn [[v _] [v2 _]] [(max v v2) 0])))
+
+(defn day-24b-solution
+  [input]
+  (day-24-impl input (fn [[v l] [v2 l2]]
+                       (cond
+                         (= l l2) [(max v v2) l]
+                         (< l l2) [v2 l2]
+                         :default [v l]))))
