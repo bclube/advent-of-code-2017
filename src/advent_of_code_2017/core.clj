@@ -1233,3 +1233,33 @@
                          (= l l2) [(max v v2) l]
                          (< l l2) [v2 l2]
                          :default [v l]))))
+
+(let [write-0 disj
+      write-1 conj
+      move-r inc
+      move-l dec]
+  (def prog
+    {\A [[write-1 move-r \B]
+         [write-0 move-l \F]]
+     \B [[write-0 move-r \C]
+         [write-0 move-r \D]]
+     \C [[write-1 move-l \D]
+         [write-1 move-r \E]]
+     \D [[write-0 move-l \E]
+         [write-0 move-l \D]]
+     \E [[write-0 move-r \A]
+         [write-1 move-r \C]]
+     \F [[write-1 move-l \A]
+         [write-1 move-r \A]]}))
+
+(defn day-25a-solution
+  []
+  (loop [n 12794428
+         st \A
+         i 0
+         tp #{}]
+    (if (pos? n)
+      (let [v (if (contains? tp i) 1 0)
+            [write-fn move-fn next-state] (get-in prog [st v])]
+        (recur (dec n) next-state (move-fn i) (write-fn tp i)))
+      (count tp))))
